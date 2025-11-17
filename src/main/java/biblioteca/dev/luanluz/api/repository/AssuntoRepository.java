@@ -8,4 +8,6 @@ import org.springframework.stereotype.Repository;
 public interface AssuntoRepository extends JpaRepository<Assunto, Integer> {
 
     boolean existsByDescricaoIgnoreCase(String descricao);
+
+    boolean existsByDescricaoIgnoreCaseAndCodigoNot(String descricao, Integer codigo);
 }
