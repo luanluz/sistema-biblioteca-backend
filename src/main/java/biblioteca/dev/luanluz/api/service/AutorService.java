@@ -74,18 +74,14 @@ public class AutorService extends BaseService<Autor, Integer, AutorRequestDTO, A
     }
 
     private void validateNomeUnico(String nome, Integer codigoAtual) {
-        if (! autorRepository.existsByNomeIgnoreCase(nome)) {
-            return;
-        }
-
-        if (codigoAtual != null) {
-            var autorExistente = autorRepository.findById(codigoAtual).orElse(null);
-            if (autorExistente != null &&
-                    autorExistente.getNome().equalsIgnoreCase(nome)) {
-                return;
+        if (codigoAtual == null) {
+            if (autorRepository.existsByNomeIgnoreCase(nome)) {
+                throw new DuplicateResourceException(RESOURCE_NAME, "nome", nome);
             }
         }
 
-        throw new DuplicateResourceException(RESOURCE_NAME, "nome", nome);
+        if (autorRepository.existsByNomeIgnoreCaseAndCodigoNot(nome, codigoAtual)) {
+            throw new DuplicateResourceException(RESOURCE_NAME, "nome", nome);
+        }
     }
 }
