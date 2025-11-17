@@ -74,18 +74,14 @@ public class AssuntoService extends BaseService<Assunto, Integer, AssuntoRequest
     }
 
     private void validateDescricaoUnica(String descricao, Integer codigoAtual) {
-        if (! assuntoRepository.existsByDescricaoIgnoreCase(descricao)) {
-            return;
-        }
-
-        if (codigoAtual != null) {
-            var assuntoExistente = assuntoRepository.findById(codigoAtual).orElse(null);
-            if (assuntoExistente != null &&
-                    assuntoExistente.getDescricao().equalsIgnoreCase(descricao)) {
-                return;
+        if (codigoAtual == null) {
+            if (assuntoRepository.existsByDescricaoIgnoreCase(descricao)) {
+                throw new DuplicateResourceException(RESOURCE_NAME, "descrição", descricao);
             }
         }
 
-        throw new DuplicateResourceException(RESOURCE_NAME, "descrição", descricao);
+        if (assuntoRepository.existsByDescricaoIgnoreCaseAndCodigoNot(descricao, codigoAtual)) {
+            throw new DuplicateResourceException(RESOURCE_NAME, "descrição", descricao);
+        }
     }
 }
