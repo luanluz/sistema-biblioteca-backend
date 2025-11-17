@@ -1,9 +1,15 @@
 package biblioteca.dev.luanluz.api.service;
 
+import biblioteca.dev.luanluz.api.dto.request.LivroRequestDTO;
+import biblioteca.dev.luanluz.api.dto.response.LivroResponseDTO;
 import biblioteca.dev.luanluz.api.exception.DomainException;
+import biblioteca.dev.luanluz.api.exception.DuplicateResourceException;
+import biblioteca.dev.luanluz.api.mapper.LivroMapper;
 import biblioteca.dev.luanluz.api.model.Assunto;
 import biblioteca.dev.luanluz.api.model.Autor;
 import biblioteca.dev.luanluz.api.model.Livro;
+import biblioteca.dev.luanluz.api.repository.AssuntoRepository;
+import biblioteca.dev.luanluz.api.repository.AutorRepository;
 import biblioteca.dev.luanluz.api.repository.LivroRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,17 +24,15 @@ import java.util.Set;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class LivroService extends BaseService<Livro, Integer> {
+public class LivroService extends BaseService<Livro, Integer, LivroRequestDTO, LivroResponseDTO> {
 
     private static final String RESOURCE_NAME = "Livro";
     private static final String IDENTIFIER_FIELD = "código";
-    private static final int MAX_TITULO_LENGTH = 40;
-    private static final int MAX_EDITORA_LENGTH = 40;
-    private static final int ANO_LENGTH = 4;
 
     private final LivroRepository livroRepository;
-    private final AutorService autorService;
-    private final AssuntoService assuntoService;
+    private final AutorRepository autorRepository;
+    private final AssuntoRepository assuntoRepository;
+    private final LivroMapper livroMapper;
 
     @Override
     protected JpaRepository<Livro, Integer> getRepository() {
@@ -46,58 +50,40 @@ public class LivroService extends BaseService<Livro, Integer> {
     }
 
     @Override
+    protected Livro toEntity(LivroRequestDTO dto) {
+        return livroMapper.toEntity(dto);
+    }
+
+    @Override
+    protected LivroResponseDTO toResponseDTO(Livro entity) {
+        return livroMapper.toResponseDTO(entity);
+    }
+
+    @Override
+    protected void updateEntityFromDTO(LivroRequestDTO dto, Livro entity) {
+        livroMapper.updateEntityFromDTO(dto, entity);
+    }
+
+    @Override
     protected void validateForCreate(Livro livro) {
-        validateNotNull(livro);
-        validateBasicFields(livro);
         validateTituloUnico(livro.getTitulo(), null);
-        validateRelationships(livro);
+        validateAnoPublicacao(livro.getAnoPublicacao());
         processarRelacionamentos(livro);
     }
 
     @Override
     protected void validateForUpdate(Integer codigo, Livro livro) {
-        validateNotNull(livro);
-        validateBasicFields(livro);
         validateTituloUnico(livro.getTitulo(), codigo);
-        validateRelationships(livro);
+        validateAnoPublicacao(livro.getAnoPublicacao());
         processarRelacionamentos(livro);
-    }
-
-    @Override
-    protected void updateEntityFields(Livro existingLivro, Livro updatedLivro) {
-        existingLivro.setTitulo(updatedLivro.getTitulo());
-        existingLivro.setEditora(updatedLivro.getEditora());
-        existingLivro.setEdicao(updatedLivro.getEdicao());
-        existingLivro.setAnoPublicacao(updatedLivro.getAnoPublicacao());
-        existingLivro.setValorEmCentavos(updatedLivro.getValorEmCentavos());
-
-        existingLivro.getAutores().clear();
-        existingLivro.getAutores().addAll(updatedLivro.getAutores());
-
-        existingLivro.getAssuntos().clear();
-        existingLivro.getAssuntos().addAll(updatedLivro.getAssuntos());
     }
 
     @Override
     protected void validateBeforeDelete(Integer integer, Livro entity) {}
 
-    private void validateBasicFields(Livro livro) {
-        validateRequiredField(livro.getTitulo(), "título");
-        validateMaxLength(livro.getTitulo(), "título", MAX_TITULO_LENGTH);
-        validateMaxLength(livro.getEditora(), "editora", MAX_EDITORA_LENGTH);
-        validatePositive(livro.getEdicao(), "edição");
-        validateAnoPublicacao(livro.getAnoPublicacao());
-        validateNonNegative(livro.getValorEmCentavos(), "valor");
-    }
-
     private void validateAnoPublicacao(String anoPublicacao) {
         if (anoPublicacao == null) {
             return;
-        }
-
-        if (anoPublicacao.length() != ANO_LENGTH) {
-            throw new DomainException(
-                    "O ano de publicação deve ter exatamente " + ANO_LENGTH + " caracteres");
         }
 
         try {
@@ -105,21 +91,10 @@ public class LivroService extends BaseService<Livro, Integer> {
             int anoAtual = java.time.Year.now().getValue();
 
             if (ano > anoAtual + 1) {
-                throw new DomainException(
-                        "O ano de publicação deve ser menor que " + (anoAtual + 1));
+                throw new DomainException("O ano de publicação deve ser menor que " + (anoAtual + 1));
             }
         } catch (NumberFormatException e) {
             throw new DomainException("O ano de publicação deve conter apenas números");
-        }
-    }
-
-    private void validateRelationships(Livro livro) {
-        if (livro.getAutores() == null || livro.getAutores().isEmpty()) {
-            throw new DomainException("O livro deve ter pelo menos um autor");
-        }
-
-        if (livro.getAssuntos() == null || livro.getAssuntos().isEmpty()) {
-            throw new DomainException("O livro deve ter pelo menos um assunto");
         }
     }
 
@@ -136,7 +111,7 @@ public class LivroService extends BaseService<Livro, Integer> {
             }
         }
 
-        throwDuplicateException("título", titulo);
+        throw new DuplicateResourceException(RESOURCE_NAME, "título", titulo);
     }
 
     private void processarRelacionamentos(Livro livro) {
@@ -153,11 +128,12 @@ public class LivroService extends BaseService<Livro, Integer> {
 
         for (var autor : livro.getAutores()) {
             if (autor.getCodigo() == null) {
-                throw new DomainException(
-                        "O código do autor é obrigatório para associação");
+                throw new DomainException("O código do autor é obrigatório para associação");
             }
 
-            var autorExistente = autorService.findById(autor.getCodigo());
+            var autorExistente = autorRepository.findById(autor.getCodigo())
+                    .orElseThrow(() -> new DomainException("Autor com código " + autor.getCodigo() + " não encontrado"));
+
             autoresValidados.add(autorExistente);
         }
 
@@ -173,11 +149,12 @@ public class LivroService extends BaseService<Livro, Integer> {
 
         for (var assunto : livro.getAssuntos()) {
             if (assunto.getCodigo() == null) {
-                throw new DomainException(
-                        "O código do assunto é obrigatório para associação");
+                throw new DomainException("O código do assunto é obrigatório para associação");
             }
 
-            var assuntoExistente = assuntoService.findById(assunto.getCodigo());
+            var assuntoExistente = assuntoRepository.findById(assunto.getCodigo())
+                    .orElseThrow(() -> new DomainException("Assunto com código " + assunto.getCodigo() + " não encontrado"));
+
             assuntosValidados.add(assuntoExistente);
         }
 
