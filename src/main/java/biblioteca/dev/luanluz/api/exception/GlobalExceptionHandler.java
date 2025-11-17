@@ -251,6 +251,21 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(DuplicateResourceException.class)
+    public ResponseEntity<Object> handleDuplicateResourceException(
+            DuplicateResourceException ex,
+            WebRequest request
+    ) {
+        log.warn("Conflito: {}", ex.getMessage());
+        return ErrorDetailFactory.create(
+                "Conflito",
+                ex.getMessage(),
+                HttpStatus.CONFLICT,
+                request,
+                null
+        );
+    }
+
     @ExceptionHandler(DomainException.class)
     public ResponseEntity<Object> handleDomainException(
             DomainException ex,
