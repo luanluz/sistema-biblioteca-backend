@@ -66,16 +66,18 @@ public class LivroService extends BaseService<Livro, Integer, LivroRequestDTO, L
 
     @Override
     protected void validateForCreate(Livro livro) {
+        processarRelacionamentos(livro);
+
         validateTituloUnico(livro.getTitulo(), null);
         validateAnoPublicacao(livro.getAnoPublicacao());
-        processarRelacionamentos(livro);
     }
 
     @Override
     protected void validateForUpdate(Integer codigo, Livro livro) {
+        processarRelacionamentos(livro);
+
         validateTituloUnico(livro.getTitulo(), codigo);
         validateAnoPublicacao(livro.getAnoPublicacao());
-        processarRelacionamentos(livro);
     }
 
     @Override
@@ -99,19 +101,15 @@ public class LivroService extends BaseService<Livro, Integer, LivroRequestDTO, L
     }
 
     private void validateTituloUnico(String titulo, Integer codigoAtual) {
-        if (! livroRepository.existsByTituloIgnoreCase(titulo)) {
-            return;
-        }
-
-        if (codigoAtual != null) {
-            var livroExistente = livroRepository.findById(codigoAtual).orElse(null);
-            if (livroExistente != null &&
-                    livroExistente.getTitulo().equalsIgnoreCase(titulo)) {
-                return;
+        if (codigoAtual == null) {
+            if (livroRepository.existsByTituloIgnoreCase(titulo)) {
+                throw new DuplicateResourceException(RESOURCE_NAME, "título", titulo);
             }
         }
 
-        throw new DuplicateResourceException(RESOURCE_NAME, "título", titulo);
+        if (livroRepository.existsByTituloIgnoreCaseAndCodigoNot(titulo, codigoAtual)) {
+            throw new DuplicateResourceException(RESOURCE_NAME, "título", titulo);
+        }
     }
 
     private void processarRelacionamentos(Livro livro) {
