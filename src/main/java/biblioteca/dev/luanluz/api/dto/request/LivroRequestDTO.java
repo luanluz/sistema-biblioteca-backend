@@ -2,6 +2,7 @@ package biblioteca.dev.luanluz.api.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -23,15 +24,19 @@ public class LivroRequestDTO {
     @Size(max = 40, message = "{livro.titulo.size}")
     private String titulo;
 
+    @NotBlank(message = "{livro.editora.notblank}")
     @Size(max = 40, message = "{livro.editora.size}")
     private String editora;
 
+    @NotNull(message = "{livro.edicao.notnull}")
     @Positive(message = "{livro.edicao.positive}")
     private Integer edicao;
 
+    @NotBlank(message = "{livro.anopublicacao.notblank}")
     @Pattern(regexp = "^\\d{4}$", message = "{livro.anopublicacao.pattern}")
     private String anoPublicacao;
 
+    @NotNull(message = "{livro.valoremcentavos.notnull}")
     @PositiveOrZero(message = "{livro.valoremcentavos.positiveorzero}")
     private Integer valorEmCentavos;
 
