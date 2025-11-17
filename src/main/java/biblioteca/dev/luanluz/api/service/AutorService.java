@@ -1,6 +1,10 @@
 package biblioteca.dev.luanluz.api.service;
 
+import biblioteca.dev.luanluz.api.dto.request.AutorRequestDTO;
+import biblioteca.dev.luanluz.api.dto.response.AutorResponseDTO;
 import biblioteca.dev.luanluz.api.exception.DomainException;
+import biblioteca.dev.luanluz.api.exception.DuplicateResourceException;
+import biblioteca.dev.luanluz.api.mapper.AutorMapper;
 import biblioteca.dev.luanluz.api.model.Autor;
 import biblioteca.dev.luanluz.api.repository.AutorRepository;
 import lombok.RequiredArgsConstructor;
@@ -13,13 +17,13 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class AutorService extends BaseService<Autor, Integer> {
+public class AutorService extends BaseService<Autor, Integer, AutorRequestDTO, AutorResponseDTO> {
 
     private static final String RESOURCE_NAME = "Autor";
     private static final String IDENTIFIER_FIELD = "código";
-    private static final int MAX_NOME_LENGTH = 40;
 
     private final AutorRepository autorRepository;
+    private final AutorMapper autorMapper;
 
     @Override
     protected JpaRepository<Autor, Integer> getRepository() {
@@ -37,24 +41,28 @@ public class AutorService extends BaseService<Autor, Integer> {
     }
 
     @Override
+    protected Autor toEntity(AutorRequestDTO dto) {
+        return autorMapper.toEntity(dto);
+    }
+
+    @Override
+    protected AutorResponseDTO toResponseDTO(Autor entity) {
+        return autorMapper.toResponseDTO(entity);
+    }
+
+    @Override
+    protected void updateEntityFromDTO(AutorRequestDTO dto, Autor entity) {
+        autorMapper.updateEntityFromDTO(dto, entity);
+    }
+
+    @Override
     protected void validateForCreate(Autor autor) {
-        validateNotNull(autor);
-        validateRequiredField(autor.getNome(), "nome");
-        validateMaxLength(autor.getNome(), "nome", MAX_NOME_LENGTH);
         validateNomeUnico(autor.getNome(), null);
     }
 
     @Override
     protected void validateForUpdate(Integer codigo, Autor autor) {
-        validateNotNull(autor);
-        validateRequiredField(autor.getNome(), "nome");
-        validateMaxLength(autor.getNome(), "nome", MAX_NOME_LENGTH);
         validateNomeUnico(autor.getNome(), codigo);
-    }
-
-    @Override
-    protected void updateEntityFields(Autor existingAutor, Autor updatedAutor) {
-        existingAutor.setNome(updatedAutor.getNome());
     }
 
     @Override
@@ -78,6 +86,6 @@ public class AutorService extends BaseService<Autor, Integer> {
             }
         }
 
-        throwDuplicateException("nome", nome);
+        throw new DuplicateResourceException(RESOURCE_NAME, "nome", nome);
     }
 }

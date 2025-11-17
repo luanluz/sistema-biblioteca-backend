@@ -1,7 +1,5 @@
 package biblioteca.dev.luanluz.api.service;
 
-import biblioteca.dev.luanluz.api.exception.DomainException;
-import biblioteca.dev.luanluz.api.exception.DuplicateResourceException;
 import biblioteca.dev.luanluz.api.exception.ResourceNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -11,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Transactional(readOnly = true)
-public abstract class BaseService<T, ID> {
+public abstract class BaseService<T, ID, REQUEST_DTO, RESPONSE_DTO> {
 
     protected abstract JpaRepository<T, ID> getRepository();
 
@@ -19,7 +17,13 @@ public abstract class BaseService<T, ID> {
 
     protected abstract String getIdentifierFieldName();
 
-    public Page<T> findAll(Pageable pageable) {
+    protected abstract T toEntity(REQUEST_DTO dto);
+
+    protected abstract RESPONSE_DTO toResponseDTO(T entity);
+
+    protected abstract void updateEntityFromDTO(REQUEST_DTO dto, T entity);
+
+    public Page<RESPONSE_DTO> findAll(Pageable pageable) {
         Page<T> page = getRepository().findAll(pageable);
 
         log.info("Encontrados {} {} na página {} de {}",
@@ -28,47 +32,46 @@ public abstract class BaseService<T, ID> {
                 page.getNumber() + 1,
                 page.getTotalPages());
 
-        return page;
+        return page.map(this::toResponseDTO);
     }
 
-    public T findById(ID id) {
-        T entity = getRepository().findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(getResourceName(), getIdentifierFieldName(), id));
-
+    public RESPONSE_DTO findById(ID id) {
+        T entity = findEntityById(id);
         log.info("{} encontrado: {}", getResourceName(), entity);
-
-        return entity;
+        return toResponseDTO(entity);
     }
 
     @Transactional
-    public T create(T entity) {
+    public RESPONSE_DTO create(REQUEST_DTO requestDTO) {
+        T entity = toEntity(requestDTO);
+
         validateForCreate(entity);
 
         T savedEntity = getRepository().save(entity);
 
         log.info("{} criado com sucesso: {}", getResourceName(), savedEntity);
 
-        return savedEntity;
+        return toResponseDTO(savedEntity);
     }
 
     @Transactional
-    public T update(ID id, T updatedEntity) {
-        T existingEntity = findById(id);
+    public RESPONSE_DTO update(ID id, REQUEST_DTO requestDTO) {
+        T existingEntity = findEntityById(id);
 
-        validateForUpdate(id, updatedEntity);
+        updateEntityFromDTO(requestDTO, existingEntity);
 
-        updateEntityFields(existingEntity, updatedEntity);
+        validateForUpdate(id, existingEntity);
 
         T savedEntity = getRepository().save(existingEntity);
 
         log.info("{} atualizado com sucesso: {}", getResourceName(), savedEntity);
 
-        return savedEntity;
+        return toResponseDTO(savedEntity);
     }
 
     @Transactional
     public void delete(ID id) {
-        T entity = findById(id);
+        T entity = findEntityById(id);
 
         validateBeforeDelete(id, entity);
 
@@ -77,56 +80,14 @@ public abstract class BaseService<T, ID> {
         log.info("{} deletado com sucesso: {}", getResourceName(), entity);
     }
 
+    protected T findEntityById(ID id) {
+        return getRepository().findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(getResourceName(), getIdentifierFieldName(), id));
+    }
+
     protected abstract void validateForCreate(T entity);
 
-    protected void validateForUpdate(ID id, T entity) {
-        validateForCreate(entity);
-    }
-
-    protected abstract void updateEntityFields(T existingEntity, T updatedEntity);
+    protected abstract void validateForUpdate(ID id, T entity);
 
     protected abstract void validateBeforeDelete(ID id, T entity);
-
-    protected void validateNotNull(T entity) {
-        if (entity == null) {
-            throw new DomainException(getResourceName() + " não pode ser nulo");
-        }
-    }
-
-    protected void validateRequiredField(String value, String fieldName) {
-        if (value == null || value.trim().isEmpty()) {
-            throw new DomainException(String.format("%s do %s é obrigatório",
-                    fieldName,
-                    getResourceName().toLowerCase()));
-        }
-    }
-
-    protected void validateMaxLength(String value, String fieldName, int maxLength) {
-        if (value != null && value.length() > maxLength) {
-            throw new DomainException(String.format("%s do %s deve ter no máximo %d caracteres",
-                    fieldName,
-                    getResourceName().toLowerCase(),
-                    maxLength));
-        }
-    }
-
-    protected void validatePositive(Integer value, String fieldName) {
-        if (value != null && value < 1) {
-            throw new DomainException(String.format("%s do %s deve ser maior que zero",
-                    fieldName,
-                    getResourceName().toLowerCase()));
-        }
-    }
-
-    protected void validateNonNegative(Integer value, String fieldName) {
-        if (value != null && value < 0) {
-            throw new DomainException(String.format("%s do %s não pode ser negativo",
-                    fieldName,
-                    getResourceName().toLowerCase()));
-        }
-    }
-
-    protected void throwDuplicateException(String fieldName, Object value) {
-        throw new DuplicateResourceException(getResourceName(), fieldName, value);
-    }
 }

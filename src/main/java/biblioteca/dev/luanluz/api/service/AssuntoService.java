@@ -1,6 +1,10 @@
 package biblioteca.dev.luanluz.api.service;
 
+import biblioteca.dev.luanluz.api.dto.request.AssuntoRequestDTO;
+import biblioteca.dev.luanluz.api.dto.response.AssuntoResponseDTO;
 import biblioteca.dev.luanluz.api.exception.DomainException;
+import biblioteca.dev.luanluz.api.exception.DuplicateResourceException;
+import biblioteca.dev.luanluz.api.mapper.AssuntoMapper;
 import biblioteca.dev.luanluz.api.model.Assunto;
 import biblioteca.dev.luanluz.api.repository.AssuntoRepository;
 import lombok.RequiredArgsConstructor;
@@ -13,13 +17,13 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
-public class AssuntoService extends BaseService<Assunto, Integer> {
+public class AssuntoService extends BaseService<Assunto, Integer, AssuntoRequestDTO, AssuntoResponseDTO> {
 
     private static final String RESOURCE_NAME = "Assunto";
     private static final String IDENTIFIER_FIELD = "código";
-    private static final int MAX_DESCRICAO_LENGTH = 20;
 
     private final AssuntoRepository assuntoRepository;
+    private final AssuntoMapper assuntoMapper;
 
     @Override
     protected JpaRepository<Assunto, Integer> getRepository() {
@@ -37,24 +41,28 @@ public class AssuntoService extends BaseService<Assunto, Integer> {
     }
 
     @Override
+    protected Assunto toEntity(AssuntoRequestDTO dto) {
+        return assuntoMapper.toEntity(dto);
+    }
+
+    @Override
+    protected AssuntoResponseDTO toResponseDTO(Assunto entity) {
+        return assuntoMapper.toResponseDTO(entity);
+    }
+
+    @Override
+    protected void updateEntityFromDTO(AssuntoRequestDTO dto, Assunto entity) {
+        assuntoMapper.updateEntityFromDTO(dto, entity);
+    }
+
+    @Override
     protected void validateForCreate(Assunto assunto) {
-        validateNotNull(assunto);
-        validateRequiredField(assunto.getDescricao(), "descrição");
-        validateMaxLength(assunto.getDescricao(), "descrição", MAX_DESCRICAO_LENGTH);
         validateDescricaoUnica(assunto.getDescricao(), null);
     }
 
     @Override
     protected void validateForUpdate(Integer codigo, Assunto assunto) {
-        validateNotNull(assunto);
-        validateRequiredField(assunto.getDescricao(), "descrição");
-        validateMaxLength(assunto.getDescricao(), "descrição", MAX_DESCRICAO_LENGTH);
         validateDescricaoUnica(assunto.getDescricao(), codigo);
-    }
-
-    @Override
-    protected void updateEntityFields(Assunto existingAssunto, Assunto updatedAssunto) {
-        existingAssunto.setDescricao(updatedAssunto.getDescricao());
     }
 
     @Override
@@ -78,6 +86,6 @@ public class AssuntoService extends BaseService<Assunto, Integer> {
             }
         }
 
-        throwDuplicateException("descrição", descricao);
+        throw new DuplicateResourceException(RESOURCE_NAME, "descrição", descricao);
     }
 }
