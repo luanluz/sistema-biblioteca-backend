@@ -3,6 +3,8 @@ package biblioteca.dev.luanluz.api.controller;
 import biblioteca.dev.luanluz.api.dto.request.AutorRequestDTO;
 import biblioteca.dev.luanluz.api.dto.response.AutorPaginacaoDTO;
 import biblioteca.dev.luanluz.api.dto.response.AutorResponseDTO;
+import biblioteca.dev.luanluz.api.exception.error.ErrorDetail;
+import biblioteca.dev.luanluz.api.exception.error.ValidationErrorDetail;
 import biblioteca.dev.luanluz.api.service.AutorService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -17,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.SortDefault;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -50,8 +53,16 @@ public class AutorController {
                     responseCode = "200",
                     description = "Lista de autores retornada com sucesso",
                     content = @Content(
-                            mediaType = "application/json",
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = AutorPaginacaoDTO.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Erro Interno do Servidor",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorDetail.class)
                     )
             )
     })
@@ -82,14 +93,25 @@ public class AutorController {
                     responseCode = "200",
                     description = "Autor encontrado com sucesso",
                     content = @Content(
-                            mediaType = "application/json",
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = AutorResponseDTO.class)
                     )
             ),
             @ApiResponse(
                     responseCode = "404",
                     description = "Autor não encontrado",
-                    content = @Content
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorDetail.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Erro Interno do Servidor",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorDetail.class)
+                    )
             )
     })
     @GetMapping("/{codigo}")
@@ -111,19 +133,33 @@ public class AutorController {
                     responseCode = "201",
                     description = "Autor criado com sucesso",
                     content = @Content(
-                            mediaType = "application/json",
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = AutorResponseDTO.class)
                     )
             ),
             @ApiResponse(
                     responseCode = "400",
                     description = "Dados inválidos",
-                    content = @Content
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ValidationErrorDetail.class)
+                    )
             ),
             @ApiResponse(
                     responseCode = "409",
                     description = "Autor com nome já existente",
-                    content = @Content
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorDetail.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Erro Interno do Servidor",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorDetail.class)
+                    )
             )
     })
     @PostMapping
@@ -151,24 +187,41 @@ public class AutorController {
                     responseCode = "200",
                     description = "Autor atualizado com sucesso",
                     content = @Content(
-                            mediaType = "application/json",
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = AutorResponseDTO.class)
                     )
             ),
             @ApiResponse(
                     responseCode = "400",
                     description = "Dados inválidos",
-                    content = @Content
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ValidationErrorDetail.class)
+                    )
             ),
             @ApiResponse(
                     responseCode = "404",
                     description = "Autor não encontrado",
-                    content = @Content
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorDetail.class)
+                    )
             ),
             @ApiResponse(
                     responseCode = "409",
                     description = "Nome já utilizado por outro autor",
-                    content = @Content
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorDetail.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Erro Interno do Servidor",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorDetail.class)
+                    )
             )
     })
     @PutMapping("/{codigo}")
@@ -197,12 +250,26 @@ public class AutorController {
             @ApiResponse(
                     responseCode = "400",
                     description = "Autor possui livros associados",
-                    content = @Content
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ValidationErrorDetail.class)
+                    )
             ),
             @ApiResponse(
                     responseCode = "404",
                     description = "Autor não encontrado",
-                    content = @Content
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorDetail.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Erro Interno do Servidor",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorDetail.class)
+                    )
             )
     })
     @DeleteMapping("/{codigo}")

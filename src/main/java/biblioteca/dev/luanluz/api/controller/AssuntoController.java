@@ -3,6 +3,8 @@ package biblioteca.dev.luanluz.api.controller;
 import biblioteca.dev.luanluz.api.dto.request.AssuntoRequestDTO;
 import biblioteca.dev.luanluz.api.dto.response.AssuntoPaginacaoDTO;
 import biblioteca.dev.luanluz.api.dto.response.AssuntoResponseDTO;
+import biblioteca.dev.luanluz.api.exception.error.ErrorDetail;
+import biblioteca.dev.luanluz.api.exception.error.ValidationErrorDetail;
 import biblioteca.dev.luanluz.api.service.AssuntoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -18,6 +20,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.SortDefault;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -53,6 +56,14 @@ public class AssuntoController {
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = AssuntoPaginacaoDTO.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Erro Interno do Servidor",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorDetail.class)
                     )
             )
     })
@@ -90,7 +101,18 @@ public class AssuntoController {
             @ApiResponse(
                     responseCode = "404",
                     description = "Assunto não encontrado",
-                    content = @Content
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorDetail.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Erro Interno do Servidor",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorDetail.class)
+                    )
             )
     })
     @GetMapping("/{codigo}")
@@ -119,12 +141,26 @@ public class AssuntoController {
             @ApiResponse(
                     responseCode = "400",
                     description = "Dados inválidos",
-                    content = @Content
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ValidationErrorDetail.class)
+                    )
             ),
             @ApiResponse(
                     responseCode = "409",
                     description = "Assunto com descrição já existente",
-                    content = @Content
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorDetail.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Erro Interno do Servidor",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorDetail.class)
+                    )
             )
     })
     @PostMapping
@@ -159,17 +195,34 @@ public class AssuntoController {
             @ApiResponse(
                     responseCode = "400",
                     description = "Dados inválidos",
-                    content = @Content
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ValidationErrorDetail.class)
+                    )
             ),
             @ApiResponse(
                     responseCode = "404",
                     description = "Assunto não encontrado",
-                    content = @Content
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorDetail.class)
+                    )
             ),
             @ApiResponse(
                     responseCode = "409",
                     description = "Descrição já utilizada por outro assunto",
-                    content = @Content
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorDetail.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Erro Interno do Servidor",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorDetail.class)
+                    )
             )
     })
     @PutMapping("/{codigo}")
@@ -198,12 +251,26 @@ public class AssuntoController {
             @ApiResponse(
                     responseCode = "400",
                     description = "Assunto possui livros associados",
-                    content = @Content
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ValidationErrorDetail.class)
+                    )
             ),
             @ApiResponse(
                     responseCode = "404",
                     description = "Assunto não encontrado",
-                    content = @Content
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorDetail.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Erro Interno do Servidor",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorDetail.class)
+                    )
             )
     })
     @DeleteMapping("/{codigo}")

@@ -3,6 +3,8 @@ package biblioteca.dev.luanluz.api.controller;
 import biblioteca.dev.luanluz.api.dto.request.LivroRequestDTO;
 import biblioteca.dev.luanluz.api.dto.response.LivroPaginacaoDTO;
 import biblioteca.dev.luanluz.api.dto.response.LivroResponseDTO;
+import biblioteca.dev.luanluz.api.exception.error.ErrorDetail;
+import biblioteca.dev.luanluz.api.exception.error.ValidationErrorDetail;
 import biblioteca.dev.luanluz.api.service.LivroService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -17,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.SortDefault;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -51,8 +54,16 @@ public class LivroController {
                     responseCode = "200",
                     description = "Lista de livros retornada com sucesso",
                     content = @Content(
-                            mediaType = "application/json",
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = LivroPaginacaoDTO.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Erro Interno do Servidor",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorDetail.class)
                     )
             )
     })
@@ -84,14 +95,25 @@ public class LivroController {
                     responseCode = "200",
                     description = "Livro encontrado com sucesso",
                     content = @Content(
-                            mediaType = "application/json",
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = LivroResponseDTO.class)
                     )
             ),
             @ApiResponse(
                     responseCode = "404",
                     description = "Livro não encontrado",
-                    content = @Content
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorDetail.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Erro Interno do Servidor",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorDetail.class)
+                    )
             )
     })
     @GetMapping("/{codigo}")
@@ -115,19 +137,33 @@ public class LivroController {
                     responseCode = "201",
                     description = "Livro criado com sucesso",
                     content = @Content(
-                            mediaType = "application/json",
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = LivroResponseDTO.class)
                     )
             ),
             @ApiResponse(
                     responseCode = "400",
                     description = "Dados inválidos",
-                    content = @Content
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ValidationErrorDetail.class)
+                    )
             ),
             @ApiResponse(
                     responseCode = "409",
                     description = "Livro com título já existente",
-                    content = @Content
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorDetail.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Erro Interno do Servidor",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorDetail.class)
+                    )
             )
     })
     @PostMapping
@@ -155,24 +191,41 @@ public class LivroController {
                     responseCode = "200",
                     description = "Livro atualizado com sucesso",
                     content = @Content(
-                            mediaType = "application/json",
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = LivroResponseDTO.class)
                     )
             ),
             @ApiResponse(
                     responseCode = "400",
                     description = "Dados inválidos",
-                    content = @Content
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ValidationErrorDetail.class)
+                    )
             ),
             @ApiResponse(
                     responseCode = "404",
                     description = "Livro não encontrado",
-                    content = @Content
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorDetail.class)
+                    )
             ),
             @ApiResponse(
                     responseCode = "409",
                     description = "Título já utilizado por outro livro",
-                    content = @Content
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorDetail.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Erro Interno do Servidor",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorDetail.class)
+                    )
             )
     })
     @PutMapping("/{codigo}")
@@ -200,7 +253,18 @@ public class LivroController {
             @ApiResponse(
                     responseCode = "404",
                     description = "Livro não encontrado",
-                    content = @Content
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorDetail.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "Erro Interno do Servidor",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = ErrorDetail.class)
+                    )
             )
     })
     @DeleteMapping("/{codigo}")
