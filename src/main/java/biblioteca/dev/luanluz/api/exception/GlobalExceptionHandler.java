@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.NoHandlerFoundException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -227,6 +228,21 @@ public class GlobalExceptionHandler {
             WebRequest request
     ) {
         log.error("Registro não encontrado: {}", ex.getMessage());
+        return ErrorDetailFactory.create(
+                "Recurso não encontrado",
+                ex.getMessage(),
+                HttpStatus.NOT_FOUND,
+                request,
+                null
+        );
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<Object> handleNoResourceFoundException(
+            NoResourceFoundException ex,
+            WebRequest request
+    ) {
+        log.error("Recurso não encontrado: {}", ex.getMessage());
         return ErrorDetailFactory.create(
                 "Recurso não encontrado",
                 ex.getMessage(),
