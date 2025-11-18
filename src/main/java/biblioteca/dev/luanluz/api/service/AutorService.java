@@ -42,6 +42,7 @@ public class AutorService extends BaseService<Autor, Integer, AutorRequestDTO, A
 
     @Override
     protected Autor toEntity(AutorRequestDTO dto) {
+        dto.setNome(dto.getNome().trim());
         return autorMapper.toEntity(dto);
     }
 
@@ -52,17 +53,18 @@ public class AutorService extends BaseService<Autor, Integer, AutorRequestDTO, A
 
     @Override
     protected void updateEntityFromDTO(AutorRequestDTO dto, Autor entity) {
+        dto.setNome(dto.getNome().trim());
         autorMapper.updateEntityFromDTO(dto, entity);
     }
 
     @Override
     protected void validateForCreate(Autor autor) {
-        validateNomeUnico(autor.getNome(), null);
+        validateNomeUnico(autor.getNome().trim(), null);
     }
 
     @Override
     protected void validateForUpdate(Integer codigo, Autor autor) {
-        validateNomeUnico(autor.getNome(), codigo);
+        validateNomeUnico(autor.getNome().trim(), codigo);
     }
 
     @Override

@@ -51,6 +51,7 @@ public class LivroService extends BaseService<Livro, Integer, LivroRequestDTO, L
 
     @Override
     protected Livro toEntity(LivroRequestDTO dto) {
+        dto.setTitulo(dto.getTitulo().trim());
         return livroMapper.toEntity(dto);
     }
 
@@ -61,6 +62,7 @@ public class LivroService extends BaseService<Livro, Integer, LivroRequestDTO, L
 
     @Override
     protected void updateEntityFromDTO(LivroRequestDTO dto, Livro entity) {
+        dto.setTitulo(dto.getTitulo().trim());
         livroMapper.updateEntityFromDTO(dto, entity);
     }
 
@@ -68,7 +70,7 @@ public class LivroService extends BaseService<Livro, Integer, LivroRequestDTO, L
     protected void validateForCreate(Livro livro) {
         processarRelacionamentos(livro);
 
-        validateTituloUnico(livro.getTitulo(), null);
+        validateTituloUnico(livro.getTitulo().trim(), null);
         validateAnoPublicacao(livro.getAnoPublicacao());
     }
 
@@ -76,7 +78,7 @@ public class LivroService extends BaseService<Livro, Integer, LivroRequestDTO, L
     protected void validateForUpdate(Integer codigo, Livro livro) {
         processarRelacionamentos(livro);
 
-        validateTituloUnico(livro.getTitulo(), codigo);
+        validateTituloUnico(livro.getTitulo().trim(), codigo);
         validateAnoPublicacao(livro.getAnoPublicacao());
     }
 

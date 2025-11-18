@@ -42,6 +42,7 @@ public class AssuntoService extends BaseService<Assunto, Integer, AssuntoRequest
 
     @Override
     protected Assunto toEntity(AssuntoRequestDTO dto) {
+        dto.setDescricao(dto.getDescricao().trim());
         return assuntoMapper.toEntity(dto);
     }
 
@@ -52,17 +53,18 @@ public class AssuntoService extends BaseService<Assunto, Integer, AssuntoRequest
 
     @Override
     protected void updateEntityFromDTO(AssuntoRequestDTO dto, Assunto entity) {
+        dto.setDescricao(dto.getDescricao().trim());
         assuntoMapper.updateEntityFromDTO(dto, entity);
     }
 
     @Override
     protected void validateForCreate(Assunto assunto) {
-        validateDescricaoUnica(assunto.getDescricao(), null);
+        validateDescricaoUnica(assunto.getDescricao().trim(), null);
     }
 
     @Override
     protected void validateForUpdate(Integer codigo, Assunto assunto) {
-        validateDescricaoUnica(assunto.getDescricao(), codigo);
+        validateDescricaoUnica(assunto.getDescricao().trim(), codigo);
     }
 
     @Override
