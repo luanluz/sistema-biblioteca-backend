@@ -4,6 +4,7 @@ import biblioteca.dev.luanluz.api.dto.request.LivroRequestDTO;
 import biblioteca.dev.luanluz.api.dto.response.LivroResponseDTO;
 import biblioteca.dev.luanluz.api.exception.DomainException;
 import biblioteca.dev.luanluz.api.exception.DuplicateResourceException;
+import biblioteca.dev.luanluz.api.exception.ResourceNotFoundException;
 import biblioteca.dev.luanluz.api.mapper.LivroMapper;
 import biblioteca.dev.luanluz.api.model.Assunto;
 import biblioteca.dev.luanluz.api.model.Autor;
@@ -13,9 +14,10 @@ import biblioteca.dev.luanluz.api.repository.AutorRepository;
 import biblioteca.dev.luanluz.api.repository.LivroRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -23,7 +25,6 @@ import java.util.Set;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class LivroService extends BaseService<Livro, Integer, LivroRequestDTO, LivroResponseDTO> {
 
     private static final String RESOURCE_NAME = "Livro";
@@ -58,6 +59,15 @@ public class LivroService extends BaseService<Livro, Integer, LivroRequestDTO, L
     @Override
     protected LivroResponseDTO toResponseDTO(Livro entity) {
         return livroMapper.toResponseDTO(entity);
+    }
+
+    protected Page<Livro> getAll(Pageable pageable) {
+        return livroRepository.findAllWithRelations(pageable);
+    }
+
+    protected Livro findEntityById(Integer id) {
+        return livroRepository.findByIdWithRelations(id)
+                .orElseThrow(() -> new ResourceNotFoundException(getResourceName(), getIdentifierFieldName(), id));
     }
 
     @Override

@@ -8,7 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
-@Transactional(readOnly = true)
 public abstract class BaseService<T, ID, REQUEST_DTO, RESPONSE_DTO> {
 
     protected abstract JpaRepository<T, ID> getRepository();
@@ -23,8 +22,9 @@ public abstract class BaseService<T, ID, REQUEST_DTO, RESPONSE_DTO> {
 
     protected abstract void updateEntityFromDTO(REQUEST_DTO dto, T entity);
 
+    @Transactional
     public Page<RESPONSE_DTO> findAll(Pageable pageable) {
-        Page<T> page = getRepository().findAll(pageable);
+        Page<T> page = getAll(pageable);
 
         log.info("Encontrados {} {} na página {} de {}",
                 page.getNumberOfElements(),
@@ -35,6 +35,7 @@ public abstract class BaseService<T, ID, REQUEST_DTO, RESPONSE_DTO> {
         return page.map(this::toResponseDTO);
     }
 
+    @Transactional
     public RESPONSE_DTO findById(ID id) {
         T entity = findEntityById(id);
         log.info("{} encontrado: {}", getResourceName(), entity);
@@ -78,6 +79,10 @@ public abstract class BaseService<T, ID, REQUEST_DTO, RESPONSE_DTO> {
         getRepository().delete(entity);
 
         log.info("{} deletado com sucesso: {}", getResourceName(), entity);
+    }
+
+    protected Page<T> getAll(Pageable pageable) {
+        return getRepository().findAll(pageable);
     }
 
     protected T findEntityById(ID id) {
