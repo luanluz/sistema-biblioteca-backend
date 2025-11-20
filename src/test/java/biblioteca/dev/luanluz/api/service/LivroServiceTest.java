@@ -28,6 +28,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -316,5 +317,55 @@ class LivroServiceTest {
         // Act & Assert
         assertThrows(DomainException.class, () -> livroService.create(requestDTO));
         verify(livroRepository, never()).save(any(Livro.class));
+    }
+
+    @Test
+    void deveNaoLancarExcecaoQuandoAnoPublicacaoForNulo() {
+        // Arrange
+        livro.setAnoPublicacao(null);
+        when(livroMapper.toEntity(requestDTO)).thenReturn(livro);
+        when(autorRepository.findById(1)).thenReturn(Optional.of(autor));
+        when(assuntoRepository.findById(1)).thenReturn(Optional.of(assunto));
+
+        // Act & Assert
+        assertThrows(DomainException.class, () -> livroService.create(requestDTO));
+    }
+
+    @Test
+    void deveLancarExcecaoQuandoAnoPublicacaoNaoForNumero() {
+        // Arrange
+        livro.setAnoPublicacao("ABC");
+        when(livroMapper.toEntity(requestDTO)).thenReturn(livro);
+        when(autorRepository.findById(1)).thenReturn(Optional.of(autor));
+        when(assuntoRepository.findById(1)).thenReturn(Optional.of(assunto));
+
+        // Act & Assert
+        assertThrows(DomainException.class, () -> livroService.create(requestDTO));
+    }
+
+    @Test
+    void deveLancarExcecaoQuandoAnoPublicacaoForFuturo() {
+        // Arrange
+        int anoFuturo = java.time.Year.now().getValue() + 1;
+        livro.setAnoPublicacao(String.valueOf(anoFuturo));
+        when(livroMapper.toEntity(requestDTO)).thenReturn(livro);
+        when(autorRepository.findById(1)).thenReturn(Optional.of(autor));
+        when(assuntoRepository.findById(1)).thenReturn(Optional.of(assunto));
+
+        // Act & Assert
+        assertThrows(DomainException.class, () -> livroService.create(requestDTO));
+    }
+
+    @Test
+    void deveNaoLancarExcecaoQuandoAnoPublicacaoForValido() {
+        // Arrange
+        int anoValido = java.time.Year.now().getValue() - 1;
+        livro.setAnoPublicacao(String.valueOf(anoValido));
+        when(livroMapper.toEntity(requestDTO)).thenReturn(livro);
+        when(autorRepository.findById(1)).thenReturn(Optional.of(autor));
+        when(assuntoRepository.findById(1)).thenReturn(Optional.of(assunto));
+
+        // Act & Assert
+        assertDoesNotThrow(() -> livroService.create(requestDTO));
     }
 }

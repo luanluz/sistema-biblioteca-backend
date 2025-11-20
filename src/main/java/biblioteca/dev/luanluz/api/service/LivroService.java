@@ -97,15 +97,15 @@ public class LivroService extends BaseService<Livro, Integer, LivroRequestDTO, L
 
     private void validateAnoPublicacao(String anoPublicacao) {
         if (anoPublicacao == null) {
-            return;
+            throw new DomainException("O ano de publicação é obrigatório");
         }
 
         try {
             int ano = Integer.parseInt(anoPublicacao);
             int anoAtual = java.time.Year.now().getValue();
 
-            if (ano > anoAtual + 1) {
-                throw new DomainException("O ano de publicação deve ser menor que " + (anoAtual + 1));
+            if (ano > anoAtual) {
+                throw new DomainException("O ano de publicação não pode ser superior ao ano atual (" + anoAtual + ")");
             }
         } catch (NumberFormatException e) {
             throw new DomainException("O ano de publicação deve conter apenas números");
