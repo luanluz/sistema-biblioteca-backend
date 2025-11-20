@@ -100,7 +100,7 @@ class LivroServiceTest {
         Pageable pageable = PageRequest.of(0, 10);
         Page<Livro> page = new PageImpl<>(Collections.singletonList(livro));
 
-        when(livroRepository.findAll(pageable)).thenReturn(page);
+        when(livroRepository.findAllWithRelations(pageable)).thenReturn(page);
         when(livroMapper.toResponseDTO(any(Livro.class))).thenReturn(responseDTO);
 
         // Act
@@ -109,13 +109,13 @@ class LivroServiceTest {
         // Assert
         assertNotNull(result);
         assertEquals(1, result.getContent().size());
-        verify(livroRepository, times(1)).findAll(pageable);
+        verify(livroRepository, times(1)).findAllWithRelations(pageable);
     }
 
     @Test
     void deveBuscarPorId() {
         // Arrange
-        when(livroRepository.findById(1)).thenReturn(Optional.of(livro));
+        when(livroRepository.findByIdWithRelations(1)).thenReturn(Optional.of(livro));
         when(livroMapper.toResponseDTO(livro)).thenReturn(responseDTO);
 
         // Act
@@ -125,17 +125,17 @@ class LivroServiceTest {
         assertNotNull(result);
         assertEquals(1, result.getCodigo());
         assertEquals("Fundação", result.getTitulo());
-        verify(livroRepository, times(1)).findById(1);
+        verify(livroRepository, times(1)).findByIdWithRelations(1);
     }
 
     @Test
     void deveLancarExcecaoQuandoNaoEncontrarPorId() {
         // Arrange
-        when(livroRepository.findById(999)).thenReturn(Optional.empty());
+        when(livroRepository.findByIdWithRelations(999)).thenReturn(Optional.empty());
 
         // Act & Assert
         assertThrows(ResourceNotFoundException.class, () -> livroService.findById(999));
-        verify(livroRepository, times(1)).findById(999);
+        verify(livroRepository, times(1)).findByIdWithRelations(999);
     }
 
     @Test
@@ -222,7 +222,7 @@ class LivroServiceTest {
     @Test
     void deveAtualizarLivro() {
         // Arrange
-        when(livroRepository.findById(1)).thenReturn(Optional.of(livro));
+        when(livroRepository.findByIdWithRelations(1)).thenReturn(Optional.of(livro));
         when(autorRepository.findById(1)).thenReturn(Optional.of(autor));
         when(assuntoRepository.findById(1)).thenReturn(Optional.of(assunto));
         when(livroRepository.existsByTituloIgnoreCaseAndCodigoNot(anyString(), anyInt())).thenReturn(false);
@@ -235,21 +235,21 @@ class LivroServiceTest {
 
         // Assert
         assertNotNull(result);
-        verify(livroRepository, times(1)).findById(1);
+        verify(livroRepository, times(1)).findByIdWithRelations(1);
         verify(livroRepository, times(1)).save(any(Livro.class));
     }
 
     @Test
     void deveDeletarLivro() {
         // Arrange
-        when(livroRepository.findById(1)).thenReturn(Optional.of(livro));
+        when(livroRepository.findByIdWithRelations(1)).thenReturn(Optional.of(livro));
         doNothing().when(livroRepository).delete(livro);
 
         // Act
         livroService.delete(1);
 
         // Assert
-        verify(livroRepository, times(1)).findById(1);
+        verify(livroRepository, times(1)).findByIdWithRelations(1);
         verify(livroRepository, times(1)).delete(livro);
     }
 
